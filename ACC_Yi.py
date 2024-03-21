@@ -218,7 +218,7 @@ class Shimmer(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    ACC = Shimmer(name='ACC')
+    ACC_node = Shimmer(name='ACC')
     clock = Clock()
 
     # IMU message declaration 
@@ -279,7 +279,7 @@ def main(args=None):
 
     # Open Serial Connections with ACC Shimmer
     ser = serial.Serial(port, 460800)
-    ACC.get_logger().info(f'Serial Object Created {ser}')
+    ACC_node.get_logger().info(f'Serial Object Created {ser}')
     ser.flush()
     
     # Stop Streaming
@@ -368,10 +368,10 @@ def main(args=None):
             emg.emg_c1ch2 = emg_calc(emg_c1ch2_cal)
 
         except serial.SerialException as e:
-            ACC.get_logger().error(f'SerialException while streaming ACC data. Error is:\n{e.strerror}')
+            ACC_node.get_logger().error(f'SerialException while streaming ACC data. Error is:\n{e.strerror}')
 
         except KeyboardInterrupt as key:
-            ACC.get_logger().info(f"Control C called: {key}")
+            ACC_node.get_logger().info(f"Control C called: {key}")
         
         # Get current ROS Time and fill the stamps of each message
         time = clock.now().to_msg()
@@ -382,14 +382,14 @@ def main(args=None):
         emg.header.stamp = time
 
         # Publish Messages
-        ACC.pubImuCalc(imu)
-        ACC.pubImuRaw(imu_raw)
+        ACC_node.pubImuCalc(imu)
+        ACC_node.pubImuRaw(imu_raw)
         # ACC.pubMagCalc(mag)
         # ACC.pubMagRaw(mag_raw)
-        ACC.pubEMG(emg)
+        ACC_node.pubEMG(emg)
 
         # Log that publishing completed
-        ACC.get_logger().debug(f'Finished Publishing data to topics')
+        ACC_node.get_logger().debug(f'Finished Publishing data to topics')
 
     # ==== End of While loop that continues until ROS has been killed ==== #
     # ==================================================================== #
@@ -402,7 +402,7 @@ def main(args=None):
     ser.close()
 
     # Destroy ACC node
-    ACC.destroy_node()
+    ACC_node.destroy_node()
     
     # Shutdown node
     rclpy.shutdown()

@@ -218,7 +218,7 @@ class Shimmer(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    ECG = Shimmer(name='ECG')
+    ECG_node = Shimmer(name='ECG')
     clock = Clock()
 
     # IMU message declaration 
@@ -279,7 +279,7 @@ def main(args=None):
 
     # Open Serial Connections with ECG Shimmer
     ser = serial.Serial(port, 115200)
-    ECG.get_logger().info(f'Serial Object Created {ser}')
+    ECG_node.get_logger().info(f'Serial Object Created {ser}')
     ser.flush()
     
     # Stop Streaming
@@ -368,10 +368,10 @@ def main(args=None):
             emg.emg_c1ch2 = emg_calc(emg_c1ch2_cal)
 
         except serial.SerialException as e:
-            ECG.get_logger().error(f'SerialException while streaming ECG data. Error is:\n{e.strerror}')
+            ECG_node.get_logger().error(f'SerialException while streaming ECG data. Error is:\n{e.strerror}')
 
         except KeyboardInterrupt as key:
-            ECG.get_logger().info(f"Control C called: {key}")
+            ECG_node.get_logger().info(f"Control C called: {key}")
         
         # Get current ROS Time and fill the stamps of each message
         time = clock.now().to_msg()
@@ -382,14 +382,14 @@ def main(args=None):
         emg.header.stamp = time
 
         # Publish Messages
-        ECG.pubImuCalc(imu)
-        ECG.pubImuRaw(imu_raw)
-        # ECG.pubMagCalc(mag)
-        # ECG.pubMagRaw(mag_raw)
-        ECG.pubEMG(emg)
+        ECG_node.pubImuCalc(imu)
+        ECG_node.pubImuRaw(imu_raw)
+        # ECG_node.pubMagCalc(mag)
+        # ECG_node.pubMagRaw(mag_raw)
+        ECG_node.pubEMG(emg)
 
         # Log that publishing completed
-        ECG.get_logger().debug(f'Finished Publishing data to topics')
+        ECG_node.get_logger().debug(f'Finished Publishing data to topics')
 
     # ==== End of While loop that continues until ROS has been killed ==== #
     # ==================================================================== #
@@ -402,7 +402,7 @@ def main(args=None):
     ser.close()
 
     # Destroy ECG node
-    ECG.destroy_node()
+    ECG_node.destroy_node()
     
     # Shutdown node
     rclpy.shutdown()

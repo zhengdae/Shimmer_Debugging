@@ -12,8 +12,8 @@ SAMPLING_RATE_RESPONSE = 0x04
 ACK_COMMAND_PROCESSED = 0xFF
 STOP_STREAMING_COMMAND = 0x20
 START_STREAMING_COMMAND = 0x07
-
 port = '/dev/rfcomm5' # Name of device port
+
 #######################################################################################################
 # For every packet that the Shimmer3 receives, it sends an acknowledgement message
 # (ACK_COMMAND_PROCESSED) back to the host, to acknowledge receipt of the command.
@@ -218,7 +218,7 @@ class Shimmer(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    EMG2 = Shimmer(name='EMG2')
+    EMG2_node = Shimmer(name='EMG2')
     clock = Clock()
 
     # IMU message declaration 
@@ -279,7 +279,7 @@ def main(args=None):
 
     # Open Serial Connections with EMG2 Shimmer
     ser = serial.Serial(port, 115200)
-    EMG2.get_logger().info(f'Serial Object Created {ser}')
+    EMG2_node.get_logger().info(f'Serial Object Created {ser}')
     ser.flush()
     
     # Stop Streaming
@@ -368,10 +368,10 @@ def main(args=None):
             emg.emg_c1ch2 = emg_calc(emg_c1ch2_cal)
 
         except serial.SerialException as e:
-            EMG2.get_logger().error(f'SerialException while streaming EMG2 data. Error is:\n{e.strerror}')
+            EMG2_node.get_logger().error(f'SerialException while streaming EMG2 data. Error is:\n{e.strerror}')
 
         except KeyboardInterrupt as key:
-            EMG2.get_logger().info(f"Control C called: {key}")
+            EMG2_node.get_logger().info(f"Control C called: {key}")
         
         # Get current ROS Time and fill the stamps of each message
         time = clock.now().to_msg()
@@ -382,14 +382,14 @@ def main(args=None):
         emg.header.stamp = time
 
         # Publish Messages
-        EMG2.pubImuCalc(imu)
-        EMG2.pubImuRaw(imu_raw)
-        # EMG2.pubMagCalc(mag)
-        # EMG2.pubMagRaw(mag_raw)
-        EMG2.pubEMG(emg)
+        EMG2_node.pubImuCalc(imu)
+        EMG2_node.pubImuRaw(imu_raw)
+        # EMG2_node.pubMagCalc(mag)
+        # EMG2_node.pubMagRaw(mag_raw)
+        EMG2_node.pubEMG(emg)
 
         # Log that publishing completed
-        EMG2.get_logger().debug(f'Finished Publishing data to topics')
+        EMG2_node.get_logger().debug(f'Finished Publishing data to topics')
 
     # ==== End of While loop that continues until ROS has been killed ==== #
     # ==================================================================== #
@@ -402,7 +402,7 @@ def main(args=None):
     ser.close()
 
     # Destroy EMG2 node
-    EMG2.destroy_node()
+    EMG2_node.destroy_node()
     
     # Shutdown node
     rclpy.shutdown()
